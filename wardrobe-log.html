@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Wardrobe Log</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FAF7FC;
+    --warm-white: #FDF9FF;
+    --stone: #C4AED0;
+    --taupe: #8A6FA0;
+    --primary: #6B3F8A;
+    --guava: #E8705A;
+    --guava-light: #F0917E;
+    --ink: #1E1224;
+    --border: rgba(107,63,138,0.12);
+    --shadow: 0 4px 24px rgba(107,63,138,0.09);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--primary);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 300;
+    color: var(--cream);
+    letter-spacing: 0.04em;
+  }
+  header .sub {
+    font-size: 11px;
+    color: var(--stone);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+  header .export-btn {
+    margin-left: auto;
+    background: rgba(255,255,255,0.13);
+    border: 1px solid rgba(255,255,255,0.28);
+    color: var(--cream);
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  header .export-btn:hover { background: rgba(255,255,255,0.24); }
+
+  /* ── LAYOUT ── */
+  .app {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 36px 24px;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  /* ── FORM PANEL ── */
+  .panel {
+    background: var(--warm-white);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 22px 26px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 19px;
+    font-weight: 400;
+    color: var(--ink);
+  }
+  .panel-body { padding: 22px 26px; }
+
+  .form-group { margin-bottom: 16px; }
+
+  label {
+    display: block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--taupe);
+    margin-bottom: 6px;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  textarea {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, textarea:focus { border-color: var(--guava); }
+  textarea { resize: vertical; min-height: 68px; }
+
+  /* UPLOAD ZONE */
+  .photo-upload {
+    border: 1.5px dashed var(--stone);
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--cream);
+    position: relative;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .photo-upload:hover { border-color: var(--guava); background: rgba(232,112,90,0.04); }
+  .photo-upload input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .photo-upload-icon { font-size: 22px; margin-bottom: 5px; }
+  .photo-upload p { font-size: 13px; color: var(--taupe); }
+  .photo-upload small { font-size: 11px; color: var(--stone); }
+
+  /* UPLOAD PREVIEW — 9:16 portrait */
+  .photo-preview {
+    display: none;
+    margin-top: 10px;
+    position: relative;
+    width: 130px;          /* fixed width */
+    height: 240px;         /* 9:16 → 130 × (16/9) ≈ 231, rounded to 240 */
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--cream);
+  }
+  .photo-preview img {
+    width: 130px;
+    height: 240px;
+    object-fit: contain;   /* show full image, no crop */
+    object-position: top center;
+    display: block;
+  }
+  .photo-preview-remove {
+    position: absolute;
+    top: 6px; right: 6px;
+    background: var(--primary);
+    color: var(--cream);
+    border: none;
+    border-radius: 50%;
+    width: 24px; height: 24px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* PEOPLE */
+  .people-input-row { display: flex; gap: 8px; }
+  .people-input-row input { flex: 1; }
+  .add-person-btn {
+    background: var(--primary);
+    color: var(--cream);
+    border: none;
+    border-radius: 8px;
+    padding: 0 14px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: background 0.2s;
+  }
+  .add-person-btn:hover { background: var(--guava); }
+  .people-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .tag {
+    background: var(--primary);
+    color: var(--cream);
+    font-size: 12px;
+    padding: 4px 10px 4px 12px;
+    border-radius: 20px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .tag button { background: none; border: none; color: var(--stone); cursor: pointer; font-size: 14px; }
+  .tag button:hover { color: var(--guava-light); }
+
+  /* OCCASION PILLS */
+  .occasion-types { display: flex; flex-wrap: wrap; gap: 7px; }
+  .occasion-pill {
+    padding: 6px 13px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--cream);
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--taupe);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .occasion-pill:hover, .occasion-pill.active {
+    background: var(--primary); color: var(--cream); border-color: var(--primary);
+  }
+
+  /* SAVE BUTTON */
+  .submit-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--guava);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+  }
+  .submit-btn:hover { background: var(--guava-light); }
+
+  /* ── RIGHT COLUMN ── */
+  .right-col { display: flex; flex-direction: column; gap: 18px; }
+
+  /* STATS */
+  .stats-bar {
+    display: flex;
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .stat-item {
+    flex: 1; padding: 14px; text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px; color: var(--primary); line-height: 1;
+  }
+  .stat-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--taupe); margin-top: 3px; }
+
+  /* SEARCH */
+  #search-input {
+    width: 100%;
+    padding: 11px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--warm-white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    box-shadow: var(--shadow);
+  }
+  #search-input:focus { border-color: var(--guava); }
+  #search-input::placeholder { color: var(--stone); }
+
+  /* FILTER */
+  .filter-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+  .filter-pill {
+    padding: 5px 13px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--warm-white);
+    font-size: 12px; cursor: pointer;
+    color: var(--taupe);
+    font-family: 'DM Sans', sans-serif;
+    box-shadow: var(--shadow);
+    transition: all 0.2s;
+  }
+  .filter-pill:hover, .filter-pill.active {
+    background: var(--primary); color: var(--cream); border-color: var(--primary);
+  }
+
+  /* ── ENTRY CARDS — grid of portrait cards ── */
+  .entries-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+  }
+
+  .entry-card {
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.15s;
+  }
+  .entry-card:hover { transform: translateY(-3px); }
+
+  /* PHOTO: fixed 130×240 px, 9:16 portrait, no crop */
+  .entry-photo {
+    width: 100%;
+    height: 0;
+    padding-bottom: 184.6%;   /* 16/9 × 100% = 177.7 %; using ~185 for taller crop buffer */
+    position: relative;
+    background: var(--cream);
+    flex-shrink: 0;
+  }
+  .entry-photo img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;        /* ← FULL image visible, no crop */
+    object-position: top center;
+    display: block;
+  }
+  .entry-photo-placeholder {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; color: var(--stone);
+  }
+
+  /* CARD BODY */
+  .entry-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 5px; }
+
+  .entry-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+
+  .entry-outfit {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px; font-weight: 400; color: var(--ink); line-height: 1.3;
+  }
+
+  .entry-date { font-size: 10px; color: var(--stone); letter-spacing: 0.03em; margin-top: 2px; }
+
+  .entry-occasion-badge {
+    display: inline-block;
+    background: var(--guava);
+    color: white;
+    font-size: 9px; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 20px; align-self: flex-start;
+  }
+
+  .entry-people { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+  .entry-person {
+    font-size: 10px;
+    background: rgba(107,63,138,0.08);
+    color: var(--taupe);
+    padding: 2px 7px; border-radius: 20px;
+  }
+
+  .entry-notes { font-size: 11px; color: var(--taupe); line-height: 1.4; font-style: italic; }
+
+  .entry-delete {
+    background: none; border: none; color: var(--stone);
+    cursor: pointer; font-size: 13px; flex-shrink: 0;
+    transition: color 0.2s;
+  }
+  .entry-delete:hover { color: var(--guava); }
+
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 48px 24px; }
+  .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--taupe); }
+  .empty-state small { font-size: 13px; color: var(--stone); display: block; margin-top: 5px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: var(--primary); color: var(--cream);
+    padding: 12px 20px; border-radius: 10px; font-size: 14px;
+    box-shadow: 0 8px 28px rgba(107,63,138,0.28);
+    transform: translateY(70px); opacity: 0;
+    transition: all 0.3s ease; z-index: 999;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  @media (max-width: 780px) {
+    .app { grid-template-columns: 1fr; }
+    header { padding: 16px 20px; }
+    .entries-list { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Wardrobe Log</h1>
+  <span class="sub">Your style memory</span>
+  <button class="export-btn" id="export-btn">⬇ Export backup</button>
+</header>
+
+<div class="app">
+
+  <!-- FORM -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Log an Outfit</span></div>
+    <div class="panel-body">
+
+      <div class="form-group">
+        <label>Outfit Description</label>
+        <input type="text" id="outfit-desc" placeholder="e.g. White linen dress + gold sandals" />
+      </div>
+
+      <div class="form-group">
+        <label>Photo (optional)</label>
+        <div class="photo-upload" id="upload-zone">
+          <input type="file" id="photo-input" accept="image/*" />
+          <div class="photo-upload-icon">🖼️</div>
+          <p>Tap to upload a photo</p>
+          <small>Full-body vertical photos work perfectly</small>
+        </div>
+        <div class="photo-preview" id="photo-preview">
+          <img id="preview-img" src="" alt="Preview" />
+          <button class="photo-preview-remove" id="remove-photo">✕</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="occasion-date" />
+      </div>
+
+      <div class="form-group">
+        <label>Occasion Type</label>
+        <div class="occasion-types" id="occasion-types">
+          <button class="occasion-pill" data-type="Work">Work</button>
+          <button class="occasion-pill" data-type="Client">Client</button>
+          <button class="occasion-pill" data-type="Dinner">Dinner</button>
+          <button class="occasion-pill" data-type="Event">Event</button>
+          <button class="occasion-pill" data-type="Travel">Travel</button>
+          <button class="occasion-pill" data-type="Casual">Casual</button>
+          <button class="occasion-pill" data-type="Speaking">Speaking</button>
+          <button class="occasion-pill" data-type="Date">Date</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Event Name / Location</label>
+        <input type="text" id="event-name" placeholder="e.g. Ana's birthday dinner, Miami" />
+      </div>
+
+      <div class="form-group">
+        <label>Who was there?</label>
+        <div class="people-input-row">
+          <input type="text" id="person-input" placeholder="Type a name, press +" />
+          <button class="add-person-btn" id="add-person-btn">+</button>
+        </div>
+        <div class="people-tags" id="people-tags"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="notes" placeholder="How did you feel? Reactions? Wear again?"></textarea>
+      </div>
+
+      <button class="submit-btn" id="save-btn">Save to Log</button>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="right-col">
+
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-number" id="stat-total">0</div>
+        <div class="stat-label">Outfits</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="stat-people">0</div>
+        <div class="stat-label">People</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="stat-occasions">0</div>
+        <div class="stat-label">Occasions</div>
+      </div>
+    </div>
+
+    <div>
+      <input type="text" id="search-input" placeholder="Search by outfit, person, or event…" />
+      <div class="filter-row" id="filter-row">
+        <button class="filter-pill active" data-filter="All">All</button>
+        <button class="filter-pill" data-filter="Work">Work</button>
+        <button class="filter-pill" data-filter="Client">Client</button>
+        <button class="filter-pill" data-filter="Dinner">Dinner</button>
+        <button class="filter-pill" data-filter="Event">Event</button>
+        <button class="filter-pill" data-filter="Travel">Travel</button>
+        <button class="filter-pill" data-filter="Casual">Casual</button>
+        <button class="filter-pill" data-filter="Speaking">Speaking</button>
+        <button class="filter-pill" data-filter="Date">Date</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="empty-state" id="empty-state">
+        <div class="empty-state-icon">👗</div>
+        <p>Your style memory starts here</p>
+        <small>Log your first outfit to begin</small>
+      </div>
+      <div class="entries-list" id="entries-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let entries = JSON.parse(localStorage.getItem('wardrobe-log') || '[]');
+  let currentPeople = [];
+  let selectedOccasionType = '';
+  let photoDataURL = '';
+  let activeFilter = 'All';
+
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('occasion-date').value = today;
+
+  // PHOTO UPLOAD
+  document.getElementById('photo-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      photoDataURL = ev.target.result;
+      document.getElementById('preview-img').src = photoDataURL;
+      document.getElementById('photo-preview').style.display = 'block';
+      document.getElementById('upload-zone').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('remove-photo').addEventListener('click', function() {
+    photoDataURL = '';
+    document.getElementById('photo-preview').style.display = 'none';
+    document.getElementById('upload-zone').style.display = 'block';
+    document.getElementById('photo-input').value = '';
+  });
+
+  // OCCASION
+  document.getElementById('occasion-types').addEventListener('click', function(e) {
+    if (!e.target.classList.contains('occasion-pill')) return;
+    document.querySelectorAll('.occasion-pill').forEach(p => p.classList.remove('active'));
+    e.target.classList.add('active');
+    selectedOccasionType = e.target.dataset.type;
+  });
+
+  // PEOPLE
+  function addPerson(name) {
+    const n = name.trim();
+    if (!n || currentPeople.includes(n)) return;
+    currentPeople.push(n);
+    renderPeopleTags();
+  }
+  document.getElementById('add-person-btn').addEventListener('click', () => {
+    const inp = document.getElementById('person-input');
+    addPerson(inp.value); inp.value = ''; inp.focus();
+  });
+  document.getElementById('person-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addPerson(this.value); this.value = ''; }
+  });
+  function renderPeopleTags() {
+    document.getElementById('people-tags').innerHTML = currentPeople.map((p, i) =>
+      `<div class="tag">${p}<button onclick="removePerson(${i})">✕</button></div>`
+    ).join('');
+  }
+  function removePerson(i) { currentPeople.splice(i, 1); renderPeopleTags(); }
+
+  // SAVE
+  document.getElementById('save-btn').addEventListener('click', function() {
+    const desc = document.getElementById('outfit-desc').value.trim();
+    if (!desc) { document.getElementById('outfit-desc').focus(); return; }
+    entries.unshift({
+      id: Date.now(),
+      outfit: desc,
+      photo: photoDataURL,
+      date: document.getElementById('occasion-date').value,
+      occasionType: selectedOccasionType,
+      eventName: document.getElementById('event-name').value.trim(),
+      people: [...currentPeople],
+      notes: document.getElementById('notes').value.trim()
+    });
+    persist(); resetForm(); renderEntries(); updateStats(); showToast('Outfit saved ✓');
+  });
+
+  function persist() { localStorage.setItem('wardrobe-log', JSON.stringify(entries)); }
+
+  function resetForm() {
+    ['outfit-desc','event-name','notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('occasion-date').value = today;
+    document.querySelectorAll('.occasion-pill').forEach(p => p.classList.remove('active'));
+    currentPeople = []; photoDataURL = ''; selectedOccasionType = '';
+    renderPeopleTags();
+    document.getElementById('photo-preview').style.display = 'none';
+    document.getElementById('upload-zone').style.display = 'block';
+    document.getElementById('photo-input').value = '';
+  }
+
+  function deleteEntry(id) {
+    entries = entries.filter(e => e.id !== id);
+    persist(); renderEntries(); updateStats(); showToast('Entry removed');
+  }
+
+  // RENDER
+  function getFiltered() {
+    const q = document.getElementById('search-input').value.trim().toLowerCase();
+    return entries.filter(e => {
+      if (activeFilter !== 'All' && e.occasionType !== activeFilter) return false;
+      if (!q) return true;
+      return e.outfit.toLowerCase().includes(q) ||
+        (e.eventName||'').toLowerCase().includes(q) ||
+        (e.notes||'').toLowerCase().includes(q) ||
+        e.people.some(p => p.toLowerCase().includes(q));
+    });
+  }
+
+  function formatDate(d) {
+    if (!d) return '';
+    const [y,m,day] = d.split('-');
+    return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1] + ' ' + +day + ', ' + y;
+  }
+
+  function renderEntries() {
+    const filtered = getFiltered();
+    const list = document.getElementById('entries-list');
+    const empty = document.getElementById('empty-state');
+    if (!filtered.length) { empty.style.display = 'block'; list.innerHTML = ''; return; }
+    empty.style.display = 'none';
+    list.innerHTML = filtered.map(e => `
+      <div class="entry-card">
+        <div class="entry-photo">
+          ${e.photo
+            ? `<img src="${e.photo}" alt="${e.outfit}">`
+            : `<div class="entry-photo-placeholder">👗</div>`}
+        </div>
+        <div class="entry-body">
+          <div class="entry-top">
+            <div>
+              <div class="entry-outfit">${e.outfit}</div>
+              <div class="entry-date">${formatDate(e.date)}${e.eventName ? ' · ' + e.eventName : ''}</div>
+            </div>
+            <button class="entry-delete" onclick="deleteEntry(${e.id})">✕</button>
+          </div>
+          ${e.occasionType ? `<div class="entry-occasion-badge">${e.occasionType}</div>` : ''}
+          ${e.people.length ? `<div class="entry-people">${e.people.map(p=>`<span class="entry-person">${p}</span>`).join('')}</div>` : ''}
+          ${e.notes ? `<div class="entry-notes">${e.notes}</div>` : ''}
+        </div>
+      </div>`).join('');
+  }
+
+  function updateStats() {
+    document.getElementById('stat-total').textContent = entries.length;
+    document.getElementById('stat-people').textContent = new Set(entries.flatMap(e=>e.people)).size;
+    document.getElementById('stat-occasions').textContent = new Set(entries.map(e=>e.eventName).filter(Boolean)).size;
+  }
+
+  document.getElementById('search-input').addEventListener('input', renderEntries);
+  document.getElementById('filter-row').addEventListener('click', function(e) {
+    if (!e.target.classList.contains('filter-pill')) return;
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    e.target.classList.add('active');
+    activeFilter = e.target.dataset.filter;
+    renderEntries();
+  });
+
+  // EXPORT
+  document.getElementById('export-btn').addEventListener('click', function() {
+    const data = entries.map(e => ({...e, photo: e.photo ? '[photo in browser]' : ''}));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:'application/json'}));
+    a.download = `wardrobe-log-${today}.json`;
+    a.click();
+    showToast('Backup downloaded ✓');
+  });
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  renderEntries();
+  updateStats();
+</script>
+</body>
+</html>
